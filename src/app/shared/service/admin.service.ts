@@ -1,13 +1,12 @@
-import {httpResource} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
-import {Observable, Observer} from 'rxjs';
+import {Injectable} from '@angular/core';
+import {environment} from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
 
-  getAdminData(): Observable<string> {
-    return new Observable((observer: Observer<any>) => {
-      observer.next(httpResource('http://localhost:8080/api/v1/admin').value());
-    })
+  static readonly Endpoint =  {
+    GET_ADMIN_DATA: "",
   }
+
+  private BASE_URL: string = environment.apiUrl + "/api/v1/admin";
 }

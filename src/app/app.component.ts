@@ -4,6 +4,7 @@ import {RouterOutlet} from '@angular/router';
 import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatButtonModule} from '@angular/material/button';
 import {AuthService} from './shared/service/auth.service';
+import {AppStore} from './shared/store/app.store';
 
 @Component({
   selector: 'app-root',
@@ -13,9 +14,12 @@ import {AuthService} from './shared/service/auth.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  authService = inject(AuthService);
+
+  private readonly authService = inject(AuthService);
+  protected readonly appStore = inject(AppStore);
 
   logout() {
-    // this.authService.logout().subscribe();
+    this.authService.logout();
+    this.appStore.setAsUnauthenticated();
   }
 }

@@ -1,120 +1,49 @@
-import {httpResource} from '@angular/common/http';
-import {computed, inject, Injectable, Injector, signal} from '@angular/core';
-import {Router} from '@angular/router';
-import {Observable, tap} from 'rxjs';
-import {LoginRequest} from '../model/login-request.model';
-import {GenericResponse} from '../model/generic-response.model';
-import {AuthResponse} from '../model/auth-response.model';
+import {HttpClient} from '@angular/common/http';
+import {inject, Injectable} from '@angular/core';
+import {finalize} from 'rxjs';
+import {LoginRequestModel} from '../model/login-request.model';
+import {AuthResponseModel} from '../model/auth-response.model';
+import {environment} from '../../environments/environment';
+import {AppStore} from '../store/app.store';
+import {KEYS} from '../constant/application.constant';
+import {GenericResponseModel} from '../model/generic-response.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private readonly injector = inject(Injector);
-  private readonly router = inject(Router);
-
-  private authState = signal({
-    isAuthenticated: false,
-    token: localStorage.getItem('access_token'),
-    roles: [] as string[]
-  });
-
-  isAuthenticated = computed(() => this.authState().isAuthenticated);
-  userRoles = computed(() => this.authState().roles);
-  token = computed(() => this.authState().token);
-
-  constructor() {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      const payload = this.parseJwt(token);
-      this.authState.set({
-        isAuthenticated: true,
-        token,
-        roles: payload.roles || []
-      });
-    }
+  static readonly Endpoint =  {
+    LOGIN: "/login",
+    LOGOUT: "/logout",
   }
 
-  login(credentials: LoginRequest): Observable<GenericResponse<AuthResponse>> {
+  private BASE_URL: string = environment.apiUrl + "/api/v1/auth";
 
-    const resource = httpResource<GenericResponse<AuthResponse>>(
-      () => ({
-        url: 'http://localhost:8080/api/v1/auth/login',
-        method: 'POST',
-        body: credentials,
-      }),
-      {
-        injector: this.injector
-      }
+  private readonly http = inject(HttpClient);
+  private readonly authStore = inject(AppStore);
+
+  login(loginRequest: LoginRequestModel) {
+    this.authStore.startLogin();
+
+    return this.http.post<GenericResponseModel<AuthResponseModel>>(
+      this.BASE_URL + AuthService.Endpoint.LOGIN,
+      loginRequest
+    ).pipe(
+      finalize(() => this.authStore.stopLogin())
     );
-
-    const response = resource.value();
-    if (response) {
-      const token = response.data.accessToken;
-      const payload = this.parseJwt(token);
-      this.authState.set({
-        isAuthenticated: true,
-        token,
-        roles: payload.roles || []
-      });
-      localStorage.setItem('access_token', token);
-    }
-    console.log(resource.value());
-
-    return new Observable(observer => {
-      if (this.isAuthenticated() && response) {
-        observer.next(response);
-      }
-    });
   }
 
-  logout(): Observable<void> {
-    const resource = httpResource<GenericResponse>({
-      url: 'http://localhost:8080/api/v1/auth/logout',
-      method: 'GET'
-    })
-
-    if (resource.status().valueOf() === 200) {
-      this.authState.set({
-        isAuthenticated: false,
-        token: null,
-        roles: []
-      });
-      localStorage.removeItem('access_token');
-      this.router.navigate(['/login']);
-    }
-
-    return new Observable(observer => {
-
-    });
+  logout(): void {
+    localStorage.removeItem(KEYS.AUTH_TOKEN);
+    location.reload();
   }
 
-  hasRole(role: string): boolean {
-    return this.getRoles().includes(role);
-  }
-
-  private parseJwt(token: string): any {
-    try {
-      return JSON.parse(atob(token.split('.')[1]));
-    } catch {
-      return {};
-    }
+  handleSuccessfulLogin(data: AuthResponseModel) {
+    localStorage.setItem(KEYS.AUTH_TOKEN, data.accessToken);
+    this.authStore.setAsAuthenticated();
   }
 
   getToken(): string | null {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem(KEYS.AUTH_TOKEN);
   }
 
-  getRoles(): string[] {
-    return this.getUserRolesFromToken(this.getToken() ? this.getToken() : '');
-  }
-
-  getUserRolesFromToken(token: string | null): string[] {
-
-    if (!token) {
-      return [];
-    }
-
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload?.groups || [];
-  }
 }

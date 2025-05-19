@@ -1,25 +1,19 @@
 <div class="container">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>Welcome</mat-card-title>
+      <mat-card-title>Welcome {{ this.appStore.meUser()?.username }}</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      @if (authService.hasRole('ADMIN')) {
-        <div>
-          <h3>Admin Data</h3>
-          <p>{{ state.adminData() }}</p>
-        </div>
-      }
+      <div class="button-group">
+        <button [disabled]="homeState.isGettingSecret()" mat-raised-button color="primary" (click)="onGetSecretText()">
+          Get secret text
+        </button>
+        <button [disabled]="!homeState.isGettingSecret()" mat-raised-button color="primary" (click)="onHideSecretText()">
+          Hide secret text
+        </button>
+      </div>
 
-      @if (authService.hasRole('USER')) {
-        <div>
-          <h3>User Data</h3>
-          <p>{{ state.userData() }}</p>
-        </div>
-      }
+      <p *ngIf="homeState.adminData()">{{ homeState.adminData() }}</p>
     </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button color="warn" (click)="logout()">Logout</button>
-    </mat-card-actions>
   </mat-card>
 </div>

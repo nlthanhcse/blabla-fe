@@ -1,18 +1,35 @@
-import {signalStore, withState} from '@ngrx/signals';
+import {patchState, signalStore, withMethods, withState} from '@ngrx/signals';
+import {UserModel} from '../model/user.model';
+import {KEYS} from '../constant/application.constant';
 
-type AppState = {
+interface AppState {
+  meUser: UserModel | null;
+  loggingIn: boolean;
   isAuthenticated: boolean;
-  token: string;
-  roles: string[];
-}
-
-const initialState: AppState = {
-  isAuthenticated: false,
-  token: '',
-  roles: []
 }
 
 export const AppStore = signalStore(
-  { protectedState: false },
-  withState(initialState)
-)
+  { providedIn: 'root' },
+  withState<AppState>({
+    meUser: null,
+    loggingIn: false,
+    isAuthenticated: !!localStorage.getItem(KEYS.AUTH_TOKEN),
+  }),
+  withMethods((store) => ({
+    startLogin() {
+      patchState(store, (state) => ({ ...state, loggingIn: true }));
+    },
+    stopLogin() {
+      patchState(store, (state) => ({ ...state, loggingIn: false }));
+    },
+    setAsAuthenticated() {
+      patchState(store, (state) => ({ ...state, isAuthenticated: true }));
+    },
+    setAsUnauthenticated() {
+      patchState(store, (state) => ({ ...state, isAuthenticated: false, meUser: null }));
+    },
+    setMeUser(user: UserModel) {
+      patchState(store, (state) => ({ ...state, meUser: user }));
+    }
+  }))
+);

@@ -14,8 +14,8 @@
         <input matInput type="password" formControlName="password" required>
       </mat-form-field>
 
-      @if (this.loginResource?.error && this.loginResource?.statusCode() === 401) {
-        <mat-error>{{ 'Invalid credentials' }}</mat-error>
+      @if (this.loginError()) {
+        <mat-error>{{ this.loginError() }}</mat-error>
       }
 
       <button mat-raised-button color="primary" type="submit">Login</button>

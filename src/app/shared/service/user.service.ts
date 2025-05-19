@@ -1,13 +1,12 @@
-import { httpResource } from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
-import {Observable, Observer} from 'rxjs';
+import {Injectable} from '@angular/core';
+import {environment} from "../../environments/environment";
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
 
-  getUserData(): Observable<string> {
-    return new Observable((observer: Observer<any>) => {
-      observer.next(httpResource('http://localhost:8080/api/v1/user').value());
-    });
+  public static readonly Endpoint =  {
+    GET_USER_DATA: "/",
   }
+
+  public static readonly BASE_URL: string = environment.apiUrl + "/api/v1/user";
 }
