@@ -1,0 +1,25 @@
+<div class="container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Welcome</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (authService.hasRole('ADMIN')) {
+        <div>
+          <h3>Admin Data</h3>
+          <p>{{ state.adminData() }}</p>
+        </div>
+      }
+
+      @if (authService.hasRole('USER')) {
+        <div>
+          <h3>User Data</h3>
+          <p>{{ state.userData() }}</p>
+        </div>
+      }
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button color="warn" (click)="logout()">Logout</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

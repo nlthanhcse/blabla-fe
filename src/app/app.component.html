@@ -1,0 +1,13 @@
+<mat-toolbar color="primary">
+  <span>JWT Auth App</span>
+
+  <span class="spacer"></span>
+
+  @if (authService.isAuthenticated()) {
+    <button mat-button (click)="logout()">Logout</button>
+  }
+</mat-toolbar>
+
+<div class="content">
+  <router-outlet></router-outlet>
+</div>
